@@ -1,0 +1,423 @@
+快捷键
+ctrl + 1  快速修复
+ctrl + 2 再按 L 自动补全等号前面部分
+ctrl + shift + o 自动导包
+alt + shift + s 自动生成方法 构造器
+
+问题：
+缓存问题（清前台缓存【清历史记录|F12 Network勾选Disable cache】  清后台缓存【停Tomcat移除项目，右键Tomcat clean，project clean】）
+导项目报错问题：配项目环境为自己的 Build Path【libraries project facets】、改数据库配置文件（注意数据库版本、url、用户名、密码）
+404：没找到资源，重启服务器
+
+一、首页模块
+
+1、导航栏
+	前台：top.jsp
+		循环遍历 <li>动态获取导航名
+	后台：IndexServlet
+		调用service查大类别集合
+		存session域对象中
+		请求转发跳转index.jsp
+		
+2、标签栏
+	前台：top.jsp
+		循环遍历 <li>动态获取标签名，注意判断是第几个标签，显示不一样的样式
+	后台：IndexServlet
+		调用service查标签集合
+		存session域对象中
+		请求转发跳转index.jsp
+
+3、商品分类
+	前台：left.jsp
+		循环遍历 <dt><dd>动态获取大类别和小类别名
+	后台：IndexServlet
+		在查询大类别的时候，同时查询当前大类别下小类别的集合
+
+4、今日特价
+	前台：index.jsp
+		循环遍历 <li>动态获取商品图片、名称、价格
+	后台：IndexServlet
+		调用service查今日特价商品集合
+		存session域对象中
+		请求转发跳转index.jsp
+
+5、最新公告
+	前台：index.jsp
+		循环遍历 标签 动态获取标题
+	后台：IndexServlet
+		调用service查公告集合
+		存session域对象中
+		请求转发跳转index.jsp
+
+6、新闻动态
+	前台：index.jsp
+		循环遍历 标签 动态获取标题
+	后台：IndexServlet
+		调用service查新闻集合
+		存session域对象中
+		请求转发跳转index.jsp
+
+7、热卖推荐
+	前台：index.jsp
+		循环遍历 <li>动态获取商品图片、名称、价格
+	后台：IndexServlet
+		调用service查热卖商品集合
+		存session域对象中
+		请求转发跳转index.jsp
+		
+二、用户模块
+1、用户登录
+	新建login.jsp image.jsp
+	前台：login.jsp
+		点击切换验证码
+			绑定点击事件，改变src属性
+		
+		给登录按钮绑定点击事件
+			非空判断
+				空，提示用户不能为空
+			提交表单
+	
+	后台：UserServlet
+		接收参数
+		判断用户行为
+		非空判断
+			空，跳转登录页面并提示用户还要回显数据
+		判断验证码是否正确(image.jsp 将验证码存session中)
+			不正确，跳转登录页面并提示用户还要回显数据
+		调用service通过用户名查询用户对象user
+		判断user是否为空
+			空，跳转登录页面并提示用户还要回显数据
+		比较密码是否正确
+			不正确，跳转登录页面并提示用户还要回显数据
+		把user存到session
+		把用户名和密码存cookie
+		跳转首页	
+		
+	top.jsp：修改显示，登录的时候和不登录的时候显示不同的标签
+
+
+2、用户注销
+	前台：top.jsp 点击注销执行方法 询问用户是否注销
+	后台：UserServlet
+		清session
+		清cookie
+		跳转登录页面
+
+
+3、用户注册
+	新建  register.jsp 
+	①用户名失焦事件
+	前台：
+		非空判断
+		ajax发出请求到后台，通过回调函数接收的后台数据进行判断result
+			result== 0  用户已存在
+			result== 1 可以用
+			result== 2 不能为空
+			
+	后台:UserServlet
+		用户行为判断  checkName
+		接收参数
+		非空判断
+			空，响应2
+		调用service通过用户名查询用户对象user
+		判断user是否为空
+			非空，响应0
+		响应1
+	
+	②注册功能
+	前台：
+		给注册绑定点击事件
+			接收参数
+			非空判断
+				空，提示用户
+			提交表单
+	后台：userServlet
+		接收参数
+		非空判断
+			空，跳转提示用户并回显
+		判断密码和确认密码是否一致
+			不一致，跳转提示用户并回显
+		判断用户名唯一性
+			不唯一，跳转提示用户并回显
+		调用userService添加用户，得到受影响行数row
+			row <=0，失败，跳转提示用户并回显
+		跳转注册成功页面
+		
+
+三、详情模块
+1、公告详情
+	前台：新建details.jsp
+		动态包含页面   notice.jsp
+		通过域对象获取导航，公告标题、公告内容
+		index.jsp 设置公告链接路径
+		
+	后台：NoticeServlet
+		接收参数 id
+		非空判断
+			空，return
+		调用noticeService查询公告信息notice
+		存作用域（notice、包含页、pageName）
+		请求转发跳转公告详情页面
+
+2、新闻详情（和公告详情一样）
+
+3、商品详情（最近浏览）
+	前台：details.jsp  新建product.jsp
+	通过域对象获取商品信息
+	index.jsp 设置商品链接路径
+	
+	left.jsp 循环遍历获取最近浏览商品
+	
+	后台：ProductServlet
+	判断用户行为
+	接收参数
+	非空判断
+		空，return
+	调用service通过id查询商品对象 Product
+	
+	最近浏览功能
+	获取session中的最近浏览商品集合
+	非空判断
+	循环遍历最近浏览商品集合，判断是不是浏览同一个商品
+		是，把这个商品放集合最前面
+	判断集合是否有4个商品
+		有，移除最后一个，把当前浏览的放最前面
+		否，把当前浏览的放最前面
+	存session，覆盖最近浏览商品集合
+	
+	存作用域（Product、包含页、pageName）
+	跳转details.jsp
+
+4、留言板
+	①查询当前页留言
+	前台：
+		新建留言板 comment.jsp
+		循环遍历显示留言以及分页栏
+		给首页留言板链接添加路径
+	
+	后台：CommentServlet
+		获取当前页参数 currentPage
+		非空判断
+			空，给个默认值
+		调用service查询当前页集合（当前页，每页数量）
+		sql：select * from t_comment order by createTime desc limit (当前页-1)*4,每页数量4;
+		查询总数
+		使用PageUtil生成分页代码（comment?action=findCommentList，留言总数，currentPage，4）
+		存作用域（当前页留言集合、分页代码）
+		请求转发跳转comment.jsp
+		
+	②发表留言
+	前台：comment.jsp
+		给提交按钮绑定点击事件
+		非空判断
+			空，提示用户
+		提交表单
+	后台：CommentServlet
+		接收参数
+		非空判断
+			空，跳转并提示用户(调用查询当前页留言的findCommentListByPage方法进行跳转)
+		调用service进行添加操作，得到受影响行数row
+		判断row是否大于0
+			否，跳转并提示用户
+		调用查询当前页留言的findCommentListByPage方法进行跳转
+		
+
+四、搜索模块
+	1、小类别搜索
+	前台：新建productList.jsp
+	循环遍历当前页搜索到的商品集合
+	设置lift.jsp子类别的路径
+
+	后台：ProductServlet
+	接收参数
+	非空判断
+		空，return
+	调用service通过当前页、每页数量、smallTypeId查询商品集合
+	调用service通过id查询商品总数 
+	使用PageUtil生成分页代码
+	存作用域（商品集合，分页代码，pageName）
+	请求转发跳转productList.jsp
+	
+	2、大类别搜索（和上面一样）
+	
+	3、关键字搜索
+	前台：top.jsp
+	设置点击搜索的访问路径
+	
+	后台：ProductServlet
+	接收参数
+	非空判断
+	调用service通过当前页、每页数量、关键字查询商品集合
+	调用service通过关键字查询商品总数 
+		使用PageUtil生成分页代码
+	存作用域（商品集合，分页代码，pageName）
+	请求转发跳转productList.jsp
+	
+
+五、个人中心
+	1、个人信息展示
+	前台：新建userCenter.jsp 动态包含userInfo.jsp
+	修改top.jsp的路径
+	修改userInfo.jsp，从session中获取
+	
+	后台：UserServlet
+	判断用户行为
+	存作用域(pageName,chagePage)
+	请求转发跳转userCenter.jsp
+	
+	
+	2、个人信息修改
+	前台：新建userEdit.jsp
+	修改userEdit.jsp的修改按钮路径，以及后台进行跳转
+	修改userCenter.jsp路径
+	修改userEdit.jsp，从session中获取
+	给更新按钮绑定点击事件
+	
+	后台：UserServlet
+	接收参数
+	非空判断
+	调用service执行更新，返回row
+	如果row>0，更新session，跳转个人中心页面
+	
+	3、个人订单展示
+	前台：新建userOrder.jsp
+	修改userCenter.jsp路径，后台进行跳转
+	修改userOrder.jsp，循环遍历订单集合显示订单
+	
+	后台：OrderServlet
+	从session中获取用户id
+	调用service通过用户id查询订单集合
+	（查询到订单集合时遍历通过订单id查询orderProductList
+	查询到orderProductList时遍历通过productId查询Product）
+	存作用域（订单集合、changePage、pageName）
+	请求转发跳转userCenter.jsp
+
+
+	4、确认收货
+	前台：userOrder.jsp
+	给确认收货绑定点击事件传入订单id参数
+	通过ajax访问后台返回给回调函数结果
+	判断结果  1 刷新页面或dom修改确认收货    0 提示用户网络异常
+	
+	后台：接收id，调用OrderService通过id修改状态status，返回受影响行数，判断返回0或1
+	
+	
+	5、订单模糊搜索
+	前台：userOrder.jsp  设置访问路径
+	
+	后台：OrderServlet
+	接收参数
+	非空判断
+		空，查询所有
+	调用service通过关键字查询订单集合
+	存作用域（订单集合、changePage、pageName、提示信息）
+	
+
+六、购物车
+	1、查看购物车
+	前台：top.jsp 修改购物车显示内容以及路径
+	新建shopping.jsp（遍历shoppingCart里的购物车商品单元集合shoppingCartItems）
+
+	
+	2、添加购物车
+	前台：product.jsp  修改路径
+	
+	后台：新建 ShoppingServlet
+	接收参数productId
+	非空判断
+		空，响应0
+	获取session中的购物车对象  ShoppingCart（新建，userId、ShoppingCartItems   新建ShoppingCartItem，Product，count）
+	购物车对象非空判断
+		空，new ShoppingCat，设置userId
+	获取ShoppingCartItems
+	boolean flag = flase
+	循环遍历ShoppingCartItems
+		判断是否是同一个商品
+			是，count+1
+			flag = true
+			break;
+	通过标记判断不是同一个商品 if(!flage)
+		不是，new ShoppingCartItem 设置Product，count
+		添加到ShoppingCartItems里
+	覆盖session中的ShoppingCart
+	响应1
+	
+	3、点击购买
+	前台：product.jsp  修改路径
+	
+	后台：ShoppingServlet
+	接收参数productId
+	非空判断
+		空，响应0
+	获取session中的购物车对象  ShoppingCart
+	购物车对象非空判断
+		空，new ShoppingCat，设置userId
+	获取ShoppingCartItems
+	boolean flag = flase
+	循环遍历ShoppingCartItems
+		判断是否是同一个商品
+			是，count+1
+			flag = true
+			break;
+	通过标记判断不是同一个商品 if(!flage)
+		不是，new ShoppingCartItem 设置Product，count
+		添加到ShoppingCartItems里
+	覆盖session中的ShoppingCart
+	响应1
+	
+	4、购物车里添加和减少商品数量
+	前台：shopping.jsp
+	点击加和减的时候ajax访问后台，传productId，count
+	
+	后台：ShoppingServlet
+	接收参数productId
+	非空判断
+		空，响应0
+	获取session中的购物车对象  ShoppingCart
+	获取ShoppingCartItems
+	循环遍历ShoppingCartItems
+		判断是否是同一个商品
+			是，覆盖count
+			flag = true
+			break;
+	覆盖session中的ShoppingCart
+	响应1
+	
+	
+	5、删除购物车商品
+	前台：shopping.jsp
+	设置删除链接路径，传入参数productId
+	
+	后台：ShoppingServlet
+	接收参数productId
+	非空判断
+		空，响应0
+	获取session中的购物车对象  ShoppingCart
+	获取ShoppingCartItems
+	循环遍历ShoppingCartItems
+		判断是否是同一个商品
+			是，移除它
+			break;
+	覆盖session中的ShoppingCart
+	响应1
+	
+	6、购物车结算
+	前台：shopping.jsp
+	设置点击结算提交路径
+	
+	后台：OrderServlet
+	通过session获取shoppingCart
+	
+	创建Order，设置userId、status、orderNo、cost
+	手动获取总价cost
+	得到shoppingCartItems
+	float cost
+	new OrderProductList
+	循环遍历，
+		拿到每一个商品单元的商品数量以及商品单价，商品数量*单价
+		设置OrderProduct  productId num
+	
+	调用service添加订单（Order），返回orderId
+	调用service添加订单中间表（OrderProductList循环遍历添加）
+	移除session中的购物车数据
+	跳转结算结果页面
